@@ -68,8 +68,7 @@ LightIRRData <- LightIRRData %>%
     between(LightIRRData$CollectionDate, as.Date("2020-10-01"), as.Date("2021-09-30")) ~ "2021",
     between(LightIRRData$CollectionDate, as.Date("2021-10-01"), as.Date("2022-09-30")) ~ "2022",
     between(LightIRRData$CollectionDate, as.Date("2022-10-01"), as.Date("2023-09-30")) ~ "2023")) %>% 
-  group_by(CollectionDate) %>% 
-  mutate(kdPAR = ln())
+  group_by(CollectionDate) 
 
 LightIRR99STTD <- LightIRRData %>% 
   filter(StationName == "STTD") %>% 
@@ -447,7 +446,7 @@ summary(KWChlaWY)
 # KWChlaWY <- kruskal.test(Concentration ~ WaterYear, data = LPCData)
 # 
 # summary(KWChlaWY)
->>>>>>> 7c85a8c7228671d97932d922cdc91c4f88e6e627
+
 
 
 # Data Findings -----------------------------------------------------------
@@ -460,7 +459,7 @@ summary(KWChlaWY)
 LightIRRFinal$lnPAR<-log(LightIRRFinal$SubIrr)
 
 
-<<<<<<< HEAD
+
 LightIRR_kdPAR <- LightIRRFinal %>%
   filter(Depth!=2.19) %>% 
   group_by(CollectionDate) %>%
