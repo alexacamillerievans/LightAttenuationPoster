@@ -461,7 +461,10 @@ LightIRRFinal$lnPAR<-log(LightIRRFinal$SubIrr)
 
 
 LightIRR_kdPAR <- LightIRRFinal %>%
-  filter(Depth!=2.19) %>% 
+  filter(Depth!=2.19,) %>%
+  filter(Depth!=2.48) %>% 
+  filter(Depth!=100) %>% 
+  filter(Depth!=17)
   group_by(CollectionDate) %>%
   do(model = lm(lnPAR ~ Depth, data = .)) %>%  
   mutate(kdPAR = coef(model)[2]) %>%  
