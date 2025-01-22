@@ -111,6 +111,19 @@ LightIRRFinal <- LightIRRFinal %>%
   rename(WaterYear = WaterYear...8, StationName = StationName...6, CollectionDate = CollectionDate...7) %>% 
   filter(between(CollectionDate, as.Date("2013-10-30"), as.Date("2022-12-23")))
 
+LightIRRFinal<-LightIRRFinal %>% 
+  filter(Depth!=2.19) %>%
+  filter(Depth!=2.48) %>% 
+  filter(Depth!=100) %>% 
+  filter(Depth!=17)
+  
+
+#fixing typo 
+
+LightIRRFinal[802,7]<-0.08
+
+
+
 # Filtering Station Code --------------------------------------------------
 
 LightSTTD <- LightIRRFinal %>% 
@@ -187,12 +200,13 @@ nut_data <- readr::read_csv(file = raw_nut)
 Chla <- nut_data %>% 
   select(station_code, sample_date, chlorophyll, secchi, turbidity) %>% 
   rename(StationName = station_code, CollectionDate = sample_date, Concentration = chlorophyll) %>% 
-  filter(between(CollectionDate, as.Date("2013-10-01"), as.Date("2019-09-30"))) %>% 
+  filter(between(CollectionDate, as.Date("2013-10-30"), as.Date("2022-12-13"))) %>% 
   filter(StationName %in% c("SHR", "STTD"))
 
+LightIRRFinal1<- merge(Chla, LightIRRFinal, by=c("CollectionDate", "StationName"), no.dups=TRUE)
 
+LightIRRFinal2<- unite(LightIRRFinal1, secchi, c(secchi.x, secchi.y))
 
-<<<<<<< HEAD
 # Retrieving integrated_wq_totalcatch.csv via entityId
 res <- data.frame(read_data_entity_names(packageId)) # Locating entityId
 entityId <- res$entityId[res$entityId == "30251306380f615705a7fdd678faba05"] # entityId for Integrated Water Quality and Fish Catch
@@ -317,7 +331,7 @@ summary(KWPhytoWY)
 KWChlaWY <- kruskal.test(Concentration ~ WaterYear, data = LPCData)
 
 summary(KWChlaWY)
-=======
+
   # # Phytoplankton Wrangling -------------------------------------------------
 # 
 # remotes::install_github("ropensci/EDIutils", ref = "development", force = TRUE)
@@ -461,10 +475,6 @@ LightIRRFinal$lnPAR<-log(LightIRRFinal$SubIrr)
 
 
 LightIRR_kdPAR <- LightIRRFinal %>%
-  filter(Depth!=2.19,) %>%
-  filter(Depth!=2.48) %>% 
-  filter(Depth!=100) %>% 
-  filter(Depth!=17)
   group_by(CollectionDate) %>%
   do(model = lm(lnPAR ~ Depth, data = .)) %>%  
   mutate(kdPAR = coef(model)[2]) %>%  
@@ -487,9 +497,7 @@ LightIRRFinal <- LightIRRFinal %>%
 
 #calculate zeu with Secchi-----------------------------------------------------------------------
 
-YBFMP_WQ_Data_Copy$secchi<- as.numeric(YBFMP_WQ_Data_Copy$secchi)
-
-secchi_df<-YBFMP_WQ_Data_Copy %>%
+secchi_df<-Chla %>%
   filter(StationName %in% c("SHR", "STTD")) %>%
   group_by(CollectionDate) %>% 
   mutate(zeu_secchi=secchi*3) %>% 
@@ -511,6 +519,7 @@ turb_df<-YBFMP_WQ_Data_Copy %>%
   select(StationName, CollectionDate,turb, WaterYear) %>% 
   na.omit(turb) %>% 
   filter(StationName %in% c("SHR", "STTD"))
+
 #select(turb, zeu_turb, CollectionDate)
 
 kdpar_turb_func <- function(turb) {
@@ -550,9 +559,8 @@ ggplot(SHR_turb, aes(x = abs(kdpar_turb), y = abs(kdPAR))) +
 
 LightSTTD_test<- LightIRRFinal %>% 
   filter(StationName=="STTD") %>% 
-  filter(DepthType=='Depth4Irr') %>% 
-  filter(as.numeric(Depth)<= 2.76)  %>% 
-  filter(as.numeric(zeu_lightIRR)<= 6)
+  filter(DepthType=='Depth4Irr') 
+#  filter(as.numeric(zeu_lightIRR)<= 6)
 # filter(as.numeric(zeu_lightIRR)<=5) %>% 
 
 
@@ -564,25 +572,12 @@ ggplot(LightSTTD_test, aes(x = Depth, y = zeu_lightIRR)) +
        x= "Observed Depth",
        y= "Predicted Depth ")
 
-#checking outliers
-
-STTD_outlier2017<- LightIRRFinal %>% 
-  filter(CollectionDate == as.Date("2017-05-30"))
-
-ggplot(STTD_outlier2017, aes(x=Depth, y=SubIrr))+ geom_line()
-
-STTD_outlier2022<- LightIRRFinal %>% 
-  filter(CollectionDate == as.Date("2022-11-14"))
-
-ggplot(STTD_outlier2022, aes(x=Depth, y=SubIrr))+ geom_line()
-
 
 #testing for SHR------------------------------------------------------------------
 
 LightSHR_test<- LightIRRFinal %>% 
   filter(StationName=="SHR") %>% 
-  filter(DepthType=='Depth4Irr') %>% 
-  filter(as.numeric(Depth)<= 2.76) 
+  filter(DepthType=='Depth4Irr') 
 # filter(as.numeric(zeu_lightIRR)<= 6)
 
 
@@ -609,15 +604,14 @@ ggplot(LightSHR_test, aes(x = CollectionDate, y = Depth)) +
 #testing zecchi observed vs predicted---------------------------------------------------------
 
 secchi_test<- LightIRRFinal %>% 
-  filter(DepthType== "Depth4Irr") %>% 
-  filter(as.numeric(Depth)<= 2.76) %>% 
-  filter(as.numeric(zeu_lightIRR)<=6)
+  filter(DepthType== "Depth4Irr") 
+  
 
 
 SHR_secchi<-secchi_test %>% 
   filter(StationName=='SHR')
 
-ggplot(SHR_secchi, aes(x = zeu_secchi, y = Depth)) +
+ggplot(LightSTTD_test, aes(x = Depth, y = zeu_secchi)) +
   geom_line()+ geom_point() + geom_smooth()
 
 ggplot(SHR_secchi, aes(x = zeu_secchi, y = zeu_lightIRR)) +
@@ -716,3 +710,7 @@ ggplot(LightSHR_test, aes(x = Depth, y = zeu_secchi)) +
        y= "Predicted Depth")
 
 #This is a test code line for Luke
+
+
+
+
