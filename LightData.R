@@ -239,29 +239,29 @@ phyto_biovolume_total <- phyto_data_clean %>%
 
 # Light, Chl a, and Phyto Data Frame --------------------------------------
 
-LCData <- merge(Light_IRR, Chla, by = c("CollectionDate", "StationName"))
-
-LCData <- LCData %>% 
-  mutate(CollectionDate = as.Date(CollectionDate, format = "%m/%d/%Y")) %>% 
-  na.omit()
-
-LPCData <- merge(phyto_biovolume_total, LCData, by = c("CollectionDate", "StationName"))
-
-LPCData <- LPCData %>% 
-  mutate(WaterYear = case_when(
-    between(LPCData$CollectionDate, as.Date("2011-10-01"), as.Date("2012-09-30")) ~ "2012",
-    between(LPCData$CollectionDate, as.Date("2012-10-01"), as.Date("2013-09-30")) ~ "2013",
-    between(LPCData$CollectionDate, as.Date("2013-10-01"), as.Date("2014-09-30")) ~ "2014",
-    between(LPCData$CollectionDate, as.Date("2014-10-01"), as.Date("2015-09-30")) ~ "2015",
-    between(LPCData$CollectionDate, as.Date("2015-10-01"), as.Date("2016-09-30")) ~ "2016",
-    between(LPCData$CollectionDate, as.Date("2016-10-01"), as.Date("2017-09-30")) ~ "2017",
-    between(LPCData$CollectionDate, as.Date("2017-10-01"), as.Date("2018-09-30")) ~ "2018",
-    between(LPCData$CollectionDate, as.Date("2018-10-01"), as.Date("2019-09-30")) ~ "2019",
-    between(LPCData$CollectionDate, as.Date("2019-10-01"), as.Date("2020-09-30")) ~ "2020",
-    between(LPCData$CollectionDate, as.Date("2020-10-01"), as.Date("2021-09-30")) ~ "2021",
-    between(LPCData$CollectionDate, as.Date("2021-10-01"), as.Date("2022-09-30")) ~ "2022",
-    between(LPCData$CollectionDate, as.Date("2022-10-01"), as.Date("2023-09-30")) ~ "2023")) %>% 
-  mutate(WaterYear = as.factor(WaterYear))
+# LCData <- merge(Light_IRR, Chla, by = c("CollectionDate", "StationName"))
+# 
+# LCData <- LCData %>% 
+#   mutate(CollectionDate = as.Date(CollectionDate, format = "%m/%d/%Y")) %>% 
+#   na.omit()
+# 
+# LPCData <- merge(phyto_biovolume_total, LCData, by = c("CollectionDate", "StationName"))
+# 
+# LPCData <- LPCData %>% 
+#   mutate(WaterYear = case_when(
+#     between(LPCData$CollectionDate, as.Date("2011-10-01"), as.Date("2012-09-30")) ~ "2012",
+#     between(LPCData$CollectionDate, as.Date("2012-10-01"), as.Date("2013-09-30")) ~ "2013",
+#     between(LPCData$CollectionDate, as.Date("2013-10-01"), as.Date("2014-09-30")) ~ "2014",
+#     between(LPCData$CollectionDate, as.Date("2014-10-01"), as.Date("2015-09-30")) ~ "2015",
+#     between(LPCData$CollectionDate, as.Date("2015-10-01"), as.Date("2016-09-30")) ~ "2016",
+#     between(LPCData$CollectionDate, as.Date("2016-10-01"), as.Date("2017-09-30")) ~ "2017",
+#     between(LPCData$CollectionDate, as.Date("2017-10-01"), as.Date("2018-09-30")) ~ "2018",
+#     between(LPCData$CollectionDate, as.Date("2018-10-01"), as.Date("2019-09-30")) ~ "2019",
+#     between(LPCData$CollectionDate, as.Date("2019-10-01"), as.Date("2020-09-30")) ~ "2020",
+#     between(LPCData$CollectionDate, as.Date("2020-10-01"), as.Date("2021-09-30")) ~ "2021",
+#     between(LPCData$CollectionDate, as.Date("2021-10-01"), as.Date("2022-09-30")) ~ "2022",
+#     between(LPCData$CollectionDate, as.Date("2022-10-01"), as.Date("2023-09-30")) ~ "2023")) %>% 
+#   mutate(WaterYear = as.factor(WaterYear))
 
 #Any correspondence with Chl-a and 75% light depth
 #Extinction Coefficient equation that goes along with light attenuation
@@ -277,61 +277,61 @@ LPCData <- LPCData %>%
 
 # Statistical Analysis ----------------------------------------------------
 
-SecchTurbReg <- lm(secchi ~ turbidity, data = LPCData)
-
-summary(SecchTurbReg)
-
-ggplot(data = LPCData) +
-  geom_line(aes(x = CollectionDate, y = secchi), color = "black") +
-  geom_point(aes(x = CollectionDate, y = secchi), color = "black") +
-  geom_line(aes(x = CollectionDate, y = turbidity / 100), color = "blue") +
-  geom_point(aes(x = CollectionDate, y = turbidity / 100), color = "blue") +
-  scale_y_continuous(name = "Secchi", sec.axis = sec_axis(~ . *50, name = "Turbidity")) 
-
-ChlaLightReg <- lm(SubIrr3 ~ Concentration, data = LPCData)
-
-summary(ChlaLightReg)
-
-PhytoturbidityReg <- lm(turbidity ~ sumBiovolume, data = LPCData)
-
-summary(PhytoturbidityReg)
-
-CHLaPhytoLightMReg <- lm(SubIrr3 ~ sumBiovolume * Concentration, data = LPCData)
-
-summary(CHLaPhytoLightMReg)
-
-LPCData15STTD <- LPCData %>% 
-  filter(WaterYear == "2015") %>% 
-  filter(StationName == "STTD") %>% 
-  mutate(CollectionDate = floor_date(CollectionDate, unit = "day")) %>% 
-  filter(CollectionDate != "2014-12-30")
-
-(Conc15 <- ggplot(data = LPCData15STTD) +
-    geom_line(aes(x = CollectionDate, y = Concentration / 70)) +
-    geom_point(aes(x = CollectionDate, y = Concentration / 70)) +
-    geom_bar(aes(x = CollectionDate, y = Depth3Irr, fill = SubIrr3),stat = "identity", alpha = .5) +
-    scale_y_continuous(name = "Depth", sec.axis = sec_axis(~ . *70, name = "Concentration"))
-)
-
-(Sum15 <- ggplot(data = LPCData15STTD) +
-    geom_line(aes(x = CollectionDate, y = sumBiovolume / 20000)) +
-    geom_point(aes(x = CollectionDate, y = sumBiovolume / 20000)) +
-    geom_bar(aes(x = CollectionDate, y = Depth3Irr, fill = SubIrr3),stat = "identity", width =4, alpha = .5) +
-    scale_y_continuous(name = "Depth", sec.axis = sec_axis(~ . *20000, name = "Biovolume"))
-)
-
-(Graph2015 <- ggarrange(Conc15, Sum15,
-                        ncol = 1,
-                        common.legend = TRUE)
-)
-
-KWPhytoWY <- kruskal.test(sumOrganismsml ~ WaterYear, data = LPCData)
-
-summary(KWPhytoWY)
-
-KWChlaWY <- kruskal.test(Concentration ~ WaterYear, data = LPCData)
-
-summary(KWChlaWY)
+# SecchTurbReg <- lm(secchi ~ turbidity, data = LPCData)
+# 
+# summary(SecchTurbReg)
+# 
+# ggplot(data = LPCData) +
+#   geom_line(aes(x = CollectionDate, y = secchi), color = "black") +
+#   geom_point(aes(x = CollectionDate, y = secchi), color = "black") +
+#   geom_line(aes(x = CollectionDate, y = turbidity / 100), color = "blue") +
+#   geom_point(aes(x = CollectionDate, y = turbidity / 100), color = "blue") +
+#   scale_y_continuous(name = "Secchi", sec.axis = sec_axis(~ . *50, name = "Turbidity")) 
+# 
+# ChlaLightReg <- lm(SubIrr3 ~ Concentration, data = LPCData)
+# 
+# summary(ChlaLightReg)
+# 
+# PhytoturbidityReg <- lm(turbidity ~ sumBiovolume, data = LPCData)
+# 
+# summary(PhytoturbidityReg)
+# 
+# CHLaPhytoLightMReg <- lm(SubIrr3 ~ sumBiovolume * Concentration, data = LPCData)
+# 
+# summary(CHLaPhytoLightMReg)
+# 
+# LPCData15STTD <- LPCData %>% 
+#   filter(WaterYear == "2015") %>% 
+#   filter(StationName == "STTD") %>% 
+#   mutate(CollectionDate = floor_date(CollectionDate, unit = "day")) %>% 
+#   filter(CollectionDate != "2014-12-30")
+# 
+# (Conc15 <- ggplot(data = LPCData15STTD) +
+#     geom_line(aes(x = CollectionDate, y = Concentration / 70)) +
+#     geom_point(aes(x = CollectionDate, y = Concentration / 70)) +
+#     geom_bar(aes(x = CollectionDate, y = Depth3Irr, fill = SubIrr3),stat = "identity", alpha = .5) +
+#     scale_y_continuous(name = "Depth", sec.axis = sec_axis(~ . *70, name = "Concentration"))
+# )
+# 
+# (Sum15 <- ggplot(data = LPCData15STTD) +
+#     geom_line(aes(x = CollectionDate, y = sumBiovolume / 20000)) +
+#     geom_point(aes(x = CollectionDate, y = sumBiovolume / 20000)) +
+#     geom_bar(aes(x = CollectionDate, y = Depth3Irr, fill = SubIrr3),stat = "identity", width =4, alpha = .5) +
+#     scale_y_continuous(name = "Depth", sec.axis = sec_axis(~ . *20000, name = "Biovolume"))
+# )
+# 
+# (Graph2015 <- ggarrange(Conc15, Sum15,
+#                         ncol = 1,
+#                         common.legend = TRUE)
+# )
+# 
+# KWPhytoWY <- kruskal.test(sumOrganismsml ~ WaterYear, data = LPCData)
+# 
+# summary(KWPhytoWY)
+# 
+# KWChlaWY <- kruskal.test(Concentration ~ WaterYear, data = LPCData)
+# 
+# summary(KWChlaWY)
 
   # # Phytoplankton Wrangling -------------------------------------------------
 # 
