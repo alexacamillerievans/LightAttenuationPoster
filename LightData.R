@@ -23,6 +23,7 @@ library(ggpubr)
 library(readr)
 library(viridis)
 library(readxl)
+library(readr)
 
 # Data Wrangling and Orginization -----------------------------------------
 
@@ -203,9 +204,9 @@ Chla <- nut_data %>%
   filter(between(CollectionDate, as.Date("2013-10-30"), as.Date("2022-12-13"))) %>% 
   filter(StationName %in% c("SHR", "STTD"))
 
-LightIRRFinal1<- merge(Chla, LightIRRFinal, by=c("CollectionDate", "StationName"), no.dups=TRUE)
+LightIRRFinal<- merge(Chla, LightIRRFinal, by=c("CollectionDate", "StationName"), no.dups=TRUE)
 
-LightIRRFinal2<- unite(LightIRRFinal1, secchi, c(secchi.x, secchi.y))
+#LightIRRFinal2<- unite(LightIRRFinal1, secchi, c(secchi.x, secchi.y))
 
 # Retrieving integrated_wq_totalcatch.csv via entityId
 res <- data.frame(read_data_entity_names(packageId)) # Locating entityId
@@ -480,6 +481,8 @@ LightIRR_kdPAR <- LightIRRFinal %>%
   mutate(kdPAR = coef(model)[2]) %>%  
   select(CollectionDate, kdPAR) 
 
+
+
 #calculate photic zone (Zeu) with Light IRR-----------------------------------------------------------
 
 zeu_lightIRR_func <- function(kdPAR) {
@@ -493,16 +496,16 @@ zeu_lightIRR_func <- function(kdPAR) {
 LightIRR_kdPAR$zeu_lightIRR <- sapply(LightIRR_kdPAR$kdPAR, zeu_lightIRR_func)
 
 LightIRRFinal <- LightIRRFinal %>%
-  left_join(LightIRR_kdPAR, by = "CollectionDate")
+  left_join(LightIRR_kdPAR, by = "CollectionDate") 
+ 
 
 #calculate zeu with Secchi-----------------------------------------------------------------------
 
-secchi_df<-Chla %>%
-  filter(StationName %in% c("SHR", "STTD")) %>%
+LightIRRFinal<-LightIRRFinal %>%
   group_by(CollectionDate) %>% 
   mutate(zeu_secchi=secchi*3) %>% 
-  ungroup() %>% 
-  select(secchi, zeu_secchi, CollectionDate )
+  ungroup()
+
 
 #secchi_zeu <- secchi_df %>%
 #group_by(CollectionDate) %>% 
@@ -510,61 +513,37 @@ secchi_df<-Chla %>%
 #select(CollectionDate, zeu_secchi)
 
 
-LightIRRFinal <- LightIRRFinal %>%
-  left_join(secchi_df, by = "CollectionDate")
 
 #calculating zeu with turbidity------------------------------------------------------------------------------
 
-turb_df<-YBFMP_WQ_Data_Copy %>% 
-  select(StationName, CollectionDate,turb, WaterYear) %>% 
-  na.omit(turb) %>% 
-  filter(StationName %in% c("SHR", "STTD"))
+#turb_df<-YBFMP_WQ_Data_Copy %>% 
+  #select(StationName, CollectionDate,turb, WaterYear) %>% 
+  #na.omit(turb) %>% 
+  #filter(StationName %in% c("SHR", "STTD"))
 
 #select(turb, zeu_turb, CollectionDate)
 
-kdpar_turb_func <- function(turb) {
-  kdpar_turb <- 4.605 / -0.52+turb*0.11
+kdpar_turb_func <- function(turbidity) {
+  kdpar_turb <-0.52+(turbidity*0.11)
   return(kdpar_turb)
   
 }
 
-turb_df$kdpar_turb <- sapply(turb_df$turb, kdpar_turb_func)
+LightIRRFinal$kdpar_turb <- sapply(LightIRRFinal$turbidity, kdpar_turb_func)
 
-turb_df<-turb_df %>% 
-  select(turb, kdpar_turb, CollectionDate)
-
-
-LightIRRFinal <- LightIRRFinal %>%
-  left_join(turb_df, by = "CollectionDate")
-
-
-#compare turbidity to kdPAR
-
-STTD_turb<-LightIRRFinal %>% 
-  filter(StationName=="STTD") %>% 
-  filter(as.numeric(kdpar_turb)<=-4)
-
-ggplot(STTD_turb, aes(x = abs(kdpar_turb), y = abs(kdPAR))) +
-  geom_line()+ geom_point() + geom_smooth()+labs(title= "STTD")
-
-SHR_turb<-LightIRRFinal %>% 
-  filter(StationName=="SHR") %>% 
-  filter(as.numeric(kdpar_turb)<=-4)
-
-ggplot(SHR_turb, aes(x = abs(kdpar_turb), y = abs(kdPAR))) +
-  geom_line()+ geom_point() + geom_smooth()+labs(title= "SHR")
 
 
 #testing light IRR zeu accurancy against STTD 4th Depth-----------------------------------
 
 LightSTTD_test<- LightIRRFinal %>% 
   filter(StationName=="STTD") %>% 
-  filter(DepthType=='Depth4Irr') 
-#  filter(as.numeric(zeu_lightIRR)<= 6)
-# filter(as.numeric(zeu_lightIRR)<=5) %>% 
+  filter(DepthType=='Depth4Irr') %>% 
+  mutate(kdPAR=abs(kdPAR))
 
-
-#filtered major outlier because depth one is incorrect
+LightSHR_test<- LightIRRFinal %>% 
+  filter(StationName=="SHR") %>% 
+  filter(DepthType=='Depth4Irr') %>% 
+  mutate(kdPAR=abs(kdPAR))
 
 ggplot(LightSTTD_test, aes(x = Depth, y = zeu_lightIRR)) +
   geom_line()+ geom_point() + geom_smooth()+ 
@@ -572,74 +551,19 @@ ggplot(LightSTTD_test, aes(x = Depth, y = zeu_lightIRR)) +
        x= "Observed Depth",
        y= "Predicted Depth ")
 
-
-#testing for SHR------------------------------------------------------------------
-
-LightSHR_test<- LightIRRFinal %>% 
-  filter(StationName=="SHR") %>% 
-  filter(DepthType=='Depth4Irr') 
-# filter(as.numeric(zeu_lightIRR)<= 6)
-
-
 ggplot(LightSHR_test, aes(x = Depth, y = zeu_lightIRR)) +
   geom_line()+ geom_point() + geom_smooth()+ 
   labs(title="LightIRR- Predicted Photic Zone Depth vs Observed at SHR",
        x= "Observed Depth",
        y= "Predicted Depth")
 
-ggplot(LightSHR_test, aes(x = CollectionDate, y = zeu_lightIRR)) +
-  geom_line()+ geom_point() + geom_smooth()+ 
-  labs(title="Predicted Photic Zone Depth vs Observed at SHR",
-       x= "Observed Depth",
-       y= "Predicted Depth")
-
-ggplot(LightSHR_test, aes(x = CollectionDate, y = Depth)) +
-  geom_line()+ geom_point() + geom_smooth()+ 
-  labs(title="Predicted Photic Zone Depth vs Observed at SHR",
-       x= "Observed Depth",
-       y= "Predicted Depth")
 
 
+#testing zecchi kdPAR ----------------------------------------------------------------------------------
 
-#testing zecchi observed vs predicted---------------------------------------------------------
+ggplot(LightSTTD_test, aes(x= kdPAR, y= kdpar_secchi))+geom_line()+geom_point()
+       +geom_smooth()
 
-secchi_test<- LightIRRFinal %>% 
-  filter(DepthType== "Depth4Irr") 
-  
-
-
-SHR_secchi<-secchi_test %>% 
-  filter(StationName=='SHR')
-
-ggplot(LightSTTD_test, aes(x = Depth, y = zeu_secchi)) +
-  geom_line()+ geom_point() + geom_smooth()
-
-ggplot(SHR_secchi, aes(x = zeu_secchi, y = zeu_lightIRR)) +
-  geom_line()+ geom_point() + geom_smooth()
-
-
-STTD_secchi<-secchi_test %>% 
-  filter(StationName=='STTD')
-
-ggplot(STTD_secchi, aes(x = zeu_secchi, y = Depth)) +
-  geom_line()+ geom_point() + geom_smooth()
-
-ggplot(STTD_secchi, aes(x = zeu_secchi, y = zeu_lightIRR)) +
-  geom_line()+ geom_point() + geom_smooth()+ labs(title="STTD")
-
-zeu_diff <- LightIRRFinal %>%
-  mutate(difference = abs(zeu_lightIRR- zeu_secchi)) %>% 
-  na.omit(zeu_diff)
-
-
-summary_stats <- zeu_diff %>%
-  summarise(
-    mean_difference = mean(difference),
-    sd_difference = sd(difference),
-    max_difference = max(difference),
-    min_difference = min(difference))
-
-print(summary_stats)
 
 # compare secchi to actual---------------------------------------------------------------
 
@@ -677,40 +601,56 @@ ggplot(LightSHR_test, aes(x = Depth, y = zeu_secchi)) +
 
 #testing turbidity----------------------------------------------------------
 
-ggplot(LightSTTD_test, aes(x = Depth, y = zeu_turb)) +
-  geom_line()+ geom_point() + geom_smooth()+ 
-  labs(title="Predicted Photic Zone Depth vs Observed at STTD- Secchi",
-       x= "Observed Depth",
-       y= "Predicted Depth")
+# ggplot(LightSTTD_test, aes(x = Depth, y = zeu_turb)) +
+#   geom_line()+ geom_point() + geom_smooth()+ 
+#   labs(title="Predicted Photic Zone Depth vs Observed at STTD- Secchi",
+#        x= "Observed Depth",
+#        y= "Predicted Depth")
+# 
+# zeu_diff <- LightIRRFinal %>%
+#   mutate(difference = abs(zeu_lightIRR- zeu_secchi)) %>% 
+#   na.omit(zeu_diff)
+# 
+# 
+# summary_stats <- zeu_diff %>%
+#   summarise(
+#     mean_difference = mean(difference),
+#     sd_difference = sd(difference),
+#     max_difference = max(difference),
+#     min_difference = min(difference))
+# 
+# print(summary_stats)
+# 
+# ggplot(LightSTTD_test, aes(x = Depth, y = zeu_secchi)) +
+#   geom_line()+ geom_point() + geom_smooth()+ 
+#   labs(title="Predicted Photic Zone Depth vs Observed at STTD- Secchi",
+#        x= "Observed Depth",
+#        y= "Predicted Depth")
+# 
+# ggplot(LightSHR_test, aes(x = Depth, y = zeu_secchi)) +
+#   geom_line()+ geom_point() + geom_smooth()+ 
+#   labs(title="Predicted Photic Zone Depth vs Observed at SHR- Secchi",
+#        x= "Observed Depth",
+#        y= "Predicted Depth")
 
-zeu_diff <- LightIRRFinal %>%
-  mutate(difference = abs(zeu_lightIRR- zeu_secchi)) %>% 
-  na.omit(zeu_diff)
 
+#This is a test code line for Luke
 
-summary_stats <- zeu_diff %>%
-  summarise(
-    mean_difference = mean(difference),
-    sd_difference = sd(difference),
-    max_difference = max(difference),
-    min_difference = min(difference))
+  
+#retesting turbidity
+  
 
-print(summary_stats)
+ggplot(LightSTTD_test, aes(x = turbidity, y = kdPAR)) +
+  geom_line()+ geom_point() + geom_smooth()+ scale_x_continuous(trans = "log10") +scale_y_continuous(trans = "log10") 
 
-ggplot(LightSTTD_test, aes(x = Depth, y = zeu_secchi)) +
-  geom_line()+ geom_point() + geom_smooth()+ 
-  labs(title="Predicted Photic Zone Depth vs Observed at STTD- Secchi",
-       x= "Observed Depth",
-       y= "Predicted Depth")
+ggplot(LightSHR_test, aes(x = turbidity, y = kdPAR)) +
+  geom_line()+ geom_point() + geom_smooth()+ scale_x_continuous(trans = "log10") + scale_y_continuous(trans = "log10") 
 
-ggplot(LightSHR_test, aes(x = Depth, y = zeu_secchi)) +
-  geom_line()+ geom_point() + geom_smooth()+ 
-  labs(title="Predicted Photic Zone Depth vs Observed at SHR- Secchi",
-       x= "Observed Depth",
-       y= "Predicted Depth")
+ggplot(LightSTTD_test, aes(x = kdpar_turb, y = kdPAR)) +
+  geom_line()+ geom_point() + geom_smooth()
 
-#Test code for Luke
-
+ggplot(LightSHR_test, aes(x = kdpar_turb, y = kdPAR)) +
+  geom_line()+ geom_point() + geom_smooth()
 
 
 
