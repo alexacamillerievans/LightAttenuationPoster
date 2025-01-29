@@ -497,7 +497,7 @@ LightIRR_kdPAR$zeu_lightIRR <- sapply(LightIRR_kdPAR$kdPAR, zeu_lightIRR_func)
 
 LightIRRFinal <- LightIRRFinal %>%
   left_join(LightIRR_kdPAR, by = "CollectionDate") 
- 
+
 
 #calculate zeu with Secchi-----------------------------------------------------------------------
 
@@ -547,16 +547,25 @@ LightSHR_test<- LightIRRFinal %>%
 
 ggplot(LightSTTD_test, aes(x = Depth, y = zeu_lightIRR)) +
   geom_line()+ geom_point() + geom_smooth()+ 
-  labs(title="Light IRR- Predicted Photic Zone Depth vs Observed at STTD",
+  labs(title="Light attenuation-Predicted Photic Zone Depth vs Observed at STTD",
        x= "Observed Depth",
        y= "Predicted Depth ")
 
+ggsave("C:/Users/acamille/OneDrive - California Department of Water Resources/Documents/LightAttenuationPoster/LightAttenuationSTTD.png",
+       width = 6, height =  4, units = "in")
+
+
+
 ggplot(LightSHR_test, aes(x = Depth, y = zeu_lightIRR)) +
   geom_line()+ geom_point() + geom_smooth()+ 
-  labs(title="LightIRR- Predicted Photic Zone Depth vs Observed at SHR",
+  labs(title="Light attenuation-Predicted Photic Zone Depth vs Observed at SHR",
        x= "Observed Depth",
        y= "Predicted Depth")
 
+getwd()
+
+ggsave("C:/Users/acamille/OneDrive - California Department of Water Resources/Documents/LightAttenuationPoster/LightAttenuationSHR.png",
+       width = 6, height =  4, units = "in")
 
 
 #testing zecchi kdPAR ----------------------------------------------------------------------------------
@@ -647,7 +656,7 @@ ggplot(LightSHR_test, aes(x = turbidity, y = kdPAR)) +
   geom_line()+ geom_point() + geom_smooth()+ scale_x_continuous(trans = "log10") + scale_y_continuous(trans = "log10") 
 
 ggplot(LightSTTD_test, aes(x = kdpar_turb, y = kdPAR)) +
-  geom_line()+ geom_point() + geom_smooth()
+  geom_line()+ geom_point() + geom_smooth()#+scale_y_continuous(trans = "log10")
 
 ggplot(LightSHR_test, aes(x = kdpar_turb, y = kdPAR)) +
   geom_line()+ geom_point() + geom_smooth()
