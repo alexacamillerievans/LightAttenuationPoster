@@ -3,6 +3,7 @@
 
 install.packages("remotes")
 install.packages("EDIutils")
+install.packages("SciViews")
 
 library(tidyverse)
 library(visreg)
@@ -24,6 +25,7 @@ library(readr)
 library(viridis)
 library(readxl)
 library(readr)
+library(SciViews)
 
 # Data Wrangling and Orginization -----------------------------------------
 
@@ -487,7 +489,7 @@ LightIRR_kdPAR <- LightIRRFinal %>%
 
 zeu_lightIRR_func <- function(kdPAR) {
   abs_kdPAR <- abs(kdPAR)
-  zeu_lightIRR <- 4.605 / abs_kdPAR
+  zeu_lightIRR <- -4.605 / abs_kdPAR
   return(zeu_lightIRR)
   
 }
@@ -531,7 +533,9 @@ kdpar_turb_func <- function(turbidity) {
 
 LightIRRFinal$kdpar_turb <- sapply(LightIRRFinal$turbidity, kdpar_turb_func)
 
-
+LightIRRFinal<-LightIRRFinal %>% 
+  mutate(zeu_turb=ln(0.01)/-kdpar_turb)
+  
 
 #testing light IRR zeu accurancy against STTD 4th Depth-----------------------------------
 
@@ -650,10 +654,10 @@ ggplot(LightSHR_test, aes(x = Depth, y = zeu_secchi)) +
   
 
 ggplot(LightSTTD_test, aes(x = turbidity, y = kdPAR)) +
-  geom_line()+ geom_point() + geom_smooth()+ scale_x_continuous(trans = "log10") +scale_y_continuous(trans = "log10") 
+  geom_line()+ geom_point() + geom_smooth() + xlim(0,100)+ ylim(0,13)  # scale_x_continuous(trans = "log10") +scale_y_continuous(trans = "log10") 
 
 ggplot(LightSHR_test, aes(x = turbidity, y = kdPAR)) +
-  geom_line()+ geom_point() + geom_smooth()+ scale_x_continuous(trans = "log10") + scale_y_continuous(trans = "log10") 
+  geom_line()+ geom_point() + geom_smooth()+xlim(0,30) #+ scale_x_continuous(trans = "log10") # scale_y_continuous(trans = "log10") 
 
 ggplot(LightSTTD_test, aes(x = kdpar_turb, y = kdPAR)) +
   geom_line()+ geom_point() + geom_smooth()#+scale_y_continuous(trans = "log10")
@@ -661,5 +665,8 @@ ggplot(LightSTTD_test, aes(x = kdpar_turb, y = kdPAR)) +
 ggplot(LightSHR_test, aes(x = kdpar_turb, y = kdPAR)) +
   geom_line()+ geom_point() + geom_smooth()
 
+ggplot(LightSTTD_test, aes(x = turbidity, y = kdPAR)) +
+  geom_line()+ geom_point() + geom_smooth() + xlim(0,100)+ ylim(0,13)
 
-
+ggplot(LightSTTD_test, aes(x = zeu_turb, y = Depth)) +
+  geom_line()+ geom_point() + geom_smooth() 
