@@ -668,5 +668,25 @@ ggplot(LightSHR_test, aes(x = kdpar_turb, y = kdPAR)) +
 ggplot(LightSTTD_test, aes(x = turbidity, y = kdPAR)) +
   geom_line()+ geom_point() + geom_smooth() + xlim(0,100)+ ylim(0,13)
 
-ggplot(LightSTTD_test, aes(x = zeu_turb, y = Depth)) +
-  geom_line()+ geom_point() + geom_smooth() 
+ggplot(LightSTTD_test) +
+  geom_line(,aes(x = zeu_turb, y = Depth))+ 
+  geom_line(,aes(y = Concentration)) +
+  geom_point() + 
+  geom_smooth() +
+  scale_y_continuous(sec.axis = sec_axis(name = "Concentration"))
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
