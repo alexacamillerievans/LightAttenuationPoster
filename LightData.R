@@ -651,7 +651,7 @@ ggplot(LightSHR_test, aes(x = Depth, y = zeu_secchi)) +
 
   
 #retesting turbidity
-  
+LightSTTD_test <- LightSTTD_test[-77,]  
 
 ggplot(LightSTTD_test, aes(x = turbidity, y = kdPAR)) +
   geom_line()+ geom_point() + geom_smooth() + xlim(0,100)+ ylim(0,13)  # scale_x_continuous(trans = "log10") +scale_y_continuous(trans = "log10") 
@@ -668,18 +668,14 @@ ggplot(LightSHR_test, aes(x = kdpar_turb, y = kdPAR)) +
 ggplot(LightSTTD_test, aes(x = turbidity, y = kdPAR)) +
   geom_line()+ geom_point() + geom_smooth() + xlim(0,100)+ ylim(0,13)
 
-ggplot(LightSTTD_test) +
-  geom_line(,aes(x = zeu_turb, y = Depth))+ 
-  geom_line(,aes(y = Concentration)) +
-  geom_point() + 
-  geom_smooth() +
-  scale_y_continuous(sec.axis = sec_axis(name = "Concentration"))
-  
-  
-  
-  
-  
-  
+ggplot(LightSTTD_test,aes(x = zeu_turb, y = Depth, color = "Depths")) + 
+  geom_line(aes(y = Concentration*.05, color = "Chla Concentration (mg/L)")) +
+  geom_point() +
+  scale_y_continuous(sec.axis = sec_axis(~./.05, name = "Concentration (mg/L)")) +
+  labs(x = "Predicted Depth", y = "Observed Depth", color = "Values")+
+  scale_color_manual(values = c("green3", "red4"))
+
+ggsave("STTDObsvsPredicvsConcGraph.png")
   
   
   
