@@ -675,14 +675,20 @@ ggplot(LightSTTD_test,aes(x = zeu_turb, y = Depth, color = "Depths")) +
   labs(x = "Predicted Depth", y = "Observed Depth", color = "Values")+
   scale_color_manual(values = c("green3", "red4"))
 
-ggsave("STTDObsvsPredicvsConcGraph.png")
+ggsave("SHRChlavsDepth.png")
   
-  
-  
-  
-  
-  
-  
-  
-  
-  
+ggplot(LightSTTD_test, aes(x = Depth, y = Concentration)) +
+  geom_point() +
+  theme_classic() +
+  labs(x = "Depth (m)", y = "Chla Concentration (mg/L)")
+
+ggplot(LightSHR_test, aes(x = Depth, y = Concentration)) +
+  geom_point() +
+  theme_classic() +
+  labs(x = "Depth (m)", y = "Chla Concentration (mg/L)") +
+  ylim(0,10)
+
+
+
+
+
