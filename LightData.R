@@ -651,19 +651,20 @@ ggplot(LightSHR_test, aes(x = Depth, y = zeu_secchi)) +
 
   
 #retesting turbidity
-LightSTTD_test <- LightSTTD_test[-77,]  
+LightSTTD_test <- LightSTTD_test %>% 
+  filter(kdpar_turb <30)
 
 ggplot(LightSTTD_test, aes(x = turbidity, y = kdPAR)) +
   geom_line()+ geom_point() + geom_smooth() + xlim(0,100)+ ylim(0,13)  # scale_x_continuous(trans = "log10") +scale_y_continuous(trans = "log10") 
 
 ggplot(LightSHR_test, aes(x = turbidity, y = kdPAR)) +
-  geom_line()+ geom_point() + geom_smooth()+xlim(0,30) #+ scale_x_continuous(trans = "log10") # scale_y_continuous(trans = "log10") 
+  geom_line()+ geom_point() + geom_smooth()+xlim(0,30) #+ scale_x_continuous(trans = "log10") + scale_y_continuous(trans = "log10") 
 
 ggplot(LightSTTD_test, aes(x = kdpar_turb, y = kdPAR)) +
-  geom_line()+ geom_point() + geom_smooth()#+scale_y_continuous(trans = "log10")
+  geom_point() + geom_smooth(method = "lm") +geom_abline(slope = 1, intercept = 0) #+ xlim(0,15) +ylim(0,15)#+scale_y_continuous(trans = "log10")
 
 ggplot(LightSHR_test, aes(x = kdpar_turb, y = kdPAR)) +
-  geom_line()+ geom_point() + geom_smooth()
+  geom_point() + geom_smooth(method = "lm") +geom_abline(slope = 1, intercept = 0)
 
 ggplot(LightSTTD_test, aes(x = turbidity, y = kdPAR)) +
   geom_line()+ geom_point() + geom_smooth() + xlim(0,100)+ ylim(0,13)
@@ -680,12 +681,14 @@ ggsave("SHRChlavsDepth.png")
 ggplot(LightSTTD_test, aes(x = Depth, y = Concentration)) +
   geom_point() +
   theme_classic() +
-  labs(x = "Depth (m)", y = "Chla Concentration (mg/L)")
+  geom_abline() +
+  labs(x = "Observed Photic Zone Depth (m)", y = "Chla Concentration (mg/L)")
 
 ggplot(LightSHR_test, aes(x = Depth, y = Concentration)) +
   geom_point() +
+  geom_abline() +
   theme_classic() +
-  labs(x = "Depth (m)", y = "Chla Concentration (mg/L)") +
+  labs(x = "Observed Photic Zone Depth (m)", y = "Chla Concentration (mg/L)") +
   ylim(0,10)
 
 
