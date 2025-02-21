@@ -654,25 +654,28 @@ ggplot(LightSHR_test, aes(x = Depth, y = zeu_secchi)) +
 LightSTTD_test <- LightSTTD_test %>% 
   filter(kdpar_turb <30)
 
+LightSHR_test <- LightSHR_test %>% 
+  filter(Concentration<11)
+
 ggplot(LightSTTD_test, aes(x = turbidity, y = kdPAR)) +
   geom_line()+ geom_point() + geom_smooth() + xlim(0,100)+ ylim(0,13)  # scale_x_continuous(trans = "log10") +scale_y_continuous(trans = "log10") 
 
 ggplot(LightSHR_test, aes(x = turbidity, y = kdPAR)) +
   geom_line()+ geom_point() + geom_smooth()+xlim(0,30) #+ scale_x_continuous(trans = "log10") + scale_y_continuous(trans = "log10") 
 
-ggplot(LightSTTD_test, aes(x = kdpar_turb, y = kdPAR)) +
+ggplot(LightSTTD_test, aes(x = kdPAR, y = kdpar_turb)) +
   geom_point() + 
   geom_smooth(method = "lm") +
   geom_abline(slope = 1, intercept = 0) +
   theme_classic()+
-  labs(x = "Predicted KdPAR", y = "Observed KdPAR")
+  labs(x = "Observed KdPAR", y = "Predicted KdPAR", title = "KdPAR Predicted vs Observed at Yolo Bypass")
 
-ggplot(LightSHR_test, aes(x = kdpar_turb, y = kdPAR)) +
+ggplot(LightSHR_test, aes(x = kdPAR, y = kdpar_turb)) +
   geom_point() + 
   geom_smooth(method = "lm") +
   geom_abline(slope = 1, intercept = 0) +
   theme_classic()+
-  labs(x = "Predicted KdPAR", y = "Observed KdPAR")
+  labs(x = "Observed KdPAR", y = "Predicted KdPAR", title = "KdPAR Predicted vs. Observed at Sacramento River")
 
 ggplot(LightSTTD_test, aes(x = turbidity, y = kdPAR)) +
   geom_line()+ geom_point() + geom_smooth() + xlim(0,100)+ ylim(0,13)
@@ -684,23 +687,20 @@ ggplot(LightSTTD_test,aes(x = zeu_turb, y = Depth, color = "Depths")) +
   labs(x = "Predicted Depth", y = "Observed Depth", color = "Values")+
   scale_color_manual(values = c("green3", "red4"))
 
-ggsave("KdPARSTTD.png")
+ggsave("KdPARSHR.png", width = 6, height = 4, units = "in")
   
 ggplot(LightSTTD_test, aes(x = Depth, y = Concentration)) +
   geom_point() +
   theme_classic() +
   geom_abline() +
-  labs(x = "Observed Photic Zone Depth (m)", y = "Chla Concentration (mg/L)")
+  labs(x = "Observed Photic Zone Depth (m)", y = "Chla Concentration (mg/L)", title = "Photic Zone Depth vs. Chla Concentration at Yolo Bypass")
 
 ggplot(LightSHR_test, aes(x = Depth, y = Concentration)) +
   geom_point() +
   geom_abline() +
   theme_classic() +
-  labs(x = "Observed Photic Zone Depth (m)", y = "Chla Concentration (mg/L)") +
-  ylim(0,10)
+  labs(x = "Observed Photic Zone Depth (m)", y = "Chla Concentration (mg/L)", title = "Photic Zone Depth vs. Chla Concentration at Sacramento River")
 
-#peepeepoopoo
-
-
-
+lm(formula = kdpar_turb ~ kdPAR, data = LightSTTD_test) %>% 
+  summary
 
