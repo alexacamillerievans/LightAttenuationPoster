@@ -652,7 +652,8 @@ ggplot(LightSHR_test, aes(x = Depth, y = zeu_secchi)) +
   
 #retesting turbidity
 LightSTTD_test <- LightSTTD_test %>% 
-  filter(kdpar_turb <30)
+  filter(kdpar_turb <30) %>% 
+  filter(Concentration<50)
 
 LightSHR_test <- LightSHR_test %>% 
   filter(Concentration<11)
