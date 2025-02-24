@@ -668,6 +668,7 @@ ggplot(LightSTTD_test, aes(x = kdPAR, y = kdpar_turb)) +
   geom_smooth(method = "lm") +
   geom_abline(slope = 1, intercept = 0) +
   theme_classic()+
+  theme(axis.title = element_text(size = 14), title =  element_text(size = 17), axis.text = element_text(size = 12)) +
   labs(x = "Observed KdPAR", y = "Predicted KdPAR", title = "KdPAR Predicted vs Observed at Yolo Bypass")
 
 ggplot(LightSHR_test, aes(x = kdPAR, y = kdpar_turb)) +
@@ -675,7 +676,11 @@ ggplot(LightSHR_test, aes(x = kdPAR, y = kdpar_turb)) +
   geom_smooth(method = "lm") +
   geom_abline(slope = 1, intercept = 0) +
   theme_classic()+
+  theme(axis.title = element_text(size = 14), title =  element_text(size = 17), axis.text = element_text(size = 12)) +
   labs(x = "Observed KdPAR", y = "Predicted KdPAR", title = "KdPAR Predicted vs. Observed at Sacramento River")
+
+?geom_smooth()
+?geom_abline
 
 ggplot(LightSTTD_test, aes(x = turbidity, y = kdPAR)) +
   geom_line()+ geom_point() + geom_smooth() + xlim(0,100)+ ylim(0,13)
@@ -687,20 +692,22 @@ ggplot(LightSTTD_test,aes(x = zeu_turb, y = Depth, color = "Depths")) +
   labs(x = "Predicted Depth", y = "Observed Depth", color = "Values")+
   scale_color_manual(values = c("green3", "red4"))
 
-ggsave("KdPARSHR.png", width = 6, height = 4, units = "in")
+ggsave("STTDChlavsDepth.png", width = 8, height = 4, units = "in")
   
 ggplot(LightSTTD_test, aes(x = Depth, y = Concentration)) +
   geom_point() +
   theme_classic() +
-  geom_abline() +
+  theme(axis.title = element_text(size = 14), title =  element_text(size = 16), axis.text = element_text(size = 12)) +
+  geom_smooth(method = "lm") +
   labs(x = "Observed Photic Zone Depth (m)", y = "Chla Concentration (mg/L)", title = "Photic Zone Depth vs. Chla Concentration at Yolo Bypass")
 
 ggplot(LightSHR_test, aes(x = Depth, y = Concentration)) +
   geom_point() +
-  geom_abline() +
+  geom_smooth(method = "lm") +
   theme_classic() +
+  theme(axis.title = element_text(size = 14), title =  element_text(size = 16), axis.text = element_text(size = 12)) +
   labs(x = "Observed Photic Zone Depth (m)", y = "Chla Concentration (mg/L)", title = "Photic Zone Depth vs. Chla Concentration at Sacramento River")
 
-lm(formula = kdpar_turb ~ kdPAR, data = LightSTTD_test) %>% 
+lm(formula = Concentration ~ Depth, data = LightSTTD_test) %>% 
   summary
 
